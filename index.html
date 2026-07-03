@@ -11,7 +11,7 @@
     input { width: 100%; padding: 18px; font-size: 18px; margin: 20px 0; border: 2px solid #ddd; border-radius: 12px; box-sizing: border-box; }
     button { width: 100%; padding: 18px; font-size: 20px; background: #e1306c; color: white; border: none; border-radius: 12px; cursor: pointer; }
     button:hover { background: #c02a5f; }
-    #status { margin-top: 20px; font-weight: bold; min-height: 28px; }
+    #status { margin-top: 20px; font-weight: bold; min-height: 50px; }
   </style>
 </head>
 <body>
@@ -35,6 +35,38 @@
           input.value = text;
           startDownload(text);
         }
+      } catch(e) {}
+    }, 1500);
+
+    async function startDownload(givenUrl = null) {
+      const url = givenUrl || input.value.trim();
+      if (!url || !url.includes('instagram.com')) {
+        status.innerHTML = '❌ Неправильная ссылка';
+        return;
+      }
+
+      status.innerHTML = '🔄 Получаем файл...';
+
+      try {
+        const res = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (data.downloadUrl) {
+          window.location.href = data.downloadUrl;
+          status.innerHTML = '✅ Скачивание началось!';
+        } else {
+          status.innerHTML = '❌ Не удалось';
+        }
+      } catch (e) {
+        status.innerHTML = '❌ Ошибка сервера';
+      }
+    }
+  </script>
+</body>
+</html>        }
       } catch(e) {}
     }, 2000);
 
