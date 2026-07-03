@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Невалидная ссылка' });
     }
 
-    // === ТВОЙ ПРОКСИ ===
+    // === ПРОКСИ СКРЫТ ===
     const agent = new SocksProxyAgent({
         host: '185.207.133.142',
         port: 7575,
@@ -23,74 +23,73 @@ export default async function handler(req, res) {
     });
 
     try {
-        // ПОЛУЧАЕМ СТРАНИЦУ
         const pageRes = await fetch(url, {
-            agent: agent,
+            agent,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
         });
 
         const html = await pageRes.text();
-        const mediaItems = [];
+        const media = [];
 
-        // ИЩЕМ ВСЕ ВИДЕО
+        // ВИДЕО
         const videoMatches = html.match(/https?:\/\/[^\s"']+\.mp4[^\s"']*/gi) || [];
-        for (const videoUrl of videoMatches) {
-            mediaItems.push({ url: videoUrl, type: 'video' });
+        for (const v of videoMatches) {
+            if (!media.some(m => m.url === v)) {
+                media.push({ url: v, type: 'video' });
+            }
         }
 
-        // ИЩЕМ ВСЕ ИЗОБРАЖЕНИЯ
-        const imageMatches = html.match(/https?:\/\/[^\s"']+\.(jpg|jpeg|png|gif|webp)[^\s"']*/gi) || [];
-        for (const imageUrl of imageMatches) {
-            mediaItems.push({ url: imageUrl, type: 'image' });
+        // ИЗОБРАЖЕНИЯ
+        const imgMatches = html.match(/https?:\/\/[^\s"']+\.(jpg|jpeg|png|gif|webp)[^\s"']*/gi) || [];
+        for (const img of imgMatches) {
+            if (!media.some(m => m.url === img)) {
+                media.push({ url: img, type: 'image' });
+            }
         }
 
-        // ЕСЛИ НИЧЕГО НЕ НАШЛИ — ПАРСИМ JSON
-        if (mediaItems.length === 0) {
+        // JSON-ДАННЫЕ (если ничего не нашли)
+        if (media.length === 0) {
             const jsonMatch = html.match(/window\._sharedData\s*=\s*({.+?});/s);
             if (jsonMatch) {
                 try {
                     const data = JSON.parse(jsonMatch[1]);
-                    const media = data?.entry_data?.PostPage?.[0]?.graphql?.shortcode_media;
-                    if (media) {
-                        if (media.video_url) {
-                            mediaItems.push({ url: media.video_url, type: 'video' });
+                    const post = data?.entry_data?.PostPage?.[0]?.graphql?.shortcode_media;
+                    if (post) {
+                        if (post.video_url) {
+                            media.push({ url: post.video_url, type: 'video' });
                         }
-                        if (media.display_url) {
-                            mediaItems.push({ url: media.display_url, type: 'image' });
+                        if (post.display_url) {
+                            media.push({ url: post.display_url, type: 'image' });
                         }
-                        if (media.edge_sidecar_to_children?.edges) {
-                            for (const edge of media.edge_sidecar_to_children.edges) {
+                        if (post.edge_sidecar_to_children?.edges) {
+                            for (const edge of post.edge_sidecar_to_children.edges) {
                                 const node = edge.node;
-                                if (node.video_url) {
-                                    mediaItems.push({ url: node.video_url, type: 'video' });
-                                }
-                                if (node.display_url) {
-                                    mediaItems.push({ url: node.display_url, type: 'image' });
-                                }
+                                if (node.video_url) media.push({ url: node.video_url, type: 'video' });
+                                if (node.display_url) media.push({ url: node.display_url, type: 'image' });
                             }
                         }
                     }
-                } catch (e) {}
+                } catch (_) {}
             }
         }
 
         // УБИРАЕМ ДУБЛИКАТЫ
-        const uniqueMedia = [];
+        const unique = [];
         const seen = new Set();
-        for (const item of mediaItems) {
+        for (const item of media) {
             if (!seen.has(item.url)) {
                 seen.add(item.url);
-                uniqueMedia.push(item);
+                unique.push(item);
             }
         }
 
-        if (uniqueMedia.length === 0) {
+        if (unique.length === 0) {
             return res.status(404).json({ error: 'Медиа не найдены' });
         }
 
-        return res.status(200).json({ media: uniqueMedia });
+        return res.status(200).json({ media: unique });
 
     } catch (error) {
         console.error('Error:', error);
