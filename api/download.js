@@ -13,97 +13,74 @@ export default async function handler(req, res) {
     }
 
     try {
-        console.log('🔍 Загружаем:', url);
+        // === ИЗВЛЕКАЕМ ID ПОСТА ИЗ ССЫЛКИ ===
+        const postId = url.match(/\/p\/([^/?]+)/)?.[1] || 
+                       url.match(/\/reel\/([^/?]+)/)?.[1] ||
+                       url.match(/\/tv\/([^/?]+)/)?.[1];
 
-        const pageRes = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
-            }
-        });
-
-        if (!pageRes.ok) {
-            throw new Error(`Instagram вернул ${pageRes.status}`);
+        if (!postId) {
+            throw new Error('Не удалось извлечь ID поста');
         }
 
-        const html = await pageRes.text();
+        console.log('🔍 ID поста:', postId);
+
+        // === ИСПОЛЬЗУЕМ ПУБЛИЧНЫЙ API ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ ===
+        // 1. Пробуем через oembed (дает thumbnail)
+        const oembedRes = await fetch(`https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`);
+        const oembedData = await oembedRes.json();
+        
         const media = [];
 
-        // ВИДЕО
-        const videoMatches = html.match(/https?:\/\/[^\s"']+\.mp4[^\s"']*/gi) || [];
-        for (const v of videoMatches) {
-            if (!media.some(m => m.url === v)) {
-                media.push({ url: v, type: 'video' });
+        if (oembedData.thumbnail_url) {
+            media.push({ 
+                url: oembedData.thumbnail_url, 
+                type: 'image' 
+            });
+        }
+
+        // 2. Пробуем через Instagram Graph API (публичные данные)
+        // Для этого нужен access_token, но пока пробуем без него
+        const graphRes = await fetch(`https://graph.instagram.com/${postId}?fields=id,media_type,media_url,permalink,thumbnail_url,children{media_type,media_url}`);
+        const graphData = await graphRes.json();
+
+        if (graphData.media_url) {
+            if (graphData.media_type === 'VIDEO') {
+                media.push({ url: graphData.media_url, type: 'video' });
+            } else {
+                media.push({ url: graphData.media_url, type: 'image' });
             }
         }
 
-        // ИЗОБРАЖЕНИЯ
-        const imgMatches = html.match(/https?:\/\/[^\s"']+\.(jpg|jpeg|png|gif|webp)[^\s"']*/gi) || [];
-        for (const img of imgMatches) {
-            if (!media.some(m => m.url === img)) {
-                media.push({ url: img, type: 'image' });
-            }
-        }
-
-        // JSON (window._sharedData)
-        if (media.length === 0) {
-            const jsonMatch = html.match(/window\._sharedData\s*=\s*({.+?});/s);
-            if (jsonMatch) {
-                try {
-                    const data = JSON.parse(jsonMatch[1]);
-                    const post = data?.entry_data?.PostPage?.[0]?.graphql?.shortcode_media;
-                    
-                    if (post) {
-                        if (post.video_url) {
-                            media.push({ url: post.video_url, type: 'video' });
-                        }
-                        if (post.display_url) {
-                            media.push({ url: post.display_url, type: 'image' });
-                        }
-                        
-                        if (post.edge_sidecar_to_children?.edges) {
-                            for (const edge of post.edge_sidecar_to_children.edges) {
-                                const node = edge.node;
-                                if (node.video_url) {
-                                    media.push({ url: node.video_url, type: 'video' });
-                                }
-                                if (node.display_url) {
-                                    media.push({ url: node.display_url, type: 'image' });
-                                }
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.log('Ошибка парсинга JSON:', e);
+        // 3. Обрабатываем карусель
+        if (graphData.children?.data) {
+            for (const child of graphData.children.data) {
+                if (child.media_type === 'VIDEO' && child.media_url) {
+                    media.push({ url: child.media_url, type: 'video' });
+                } else if (child.media_url) {
+                    media.push({ url: child.media_url, type: 'image' });
                 }
             }
         }
 
-        // УБИРАЕМ ДУБЛИКАТЫ
-        const unique = [];
-        const seen = new Set();
-        for (const item of media) {
-            if (!seen.has(item.url)) {
-                seen.add(item.url);
-                unique.push(item);
-            }
-        }
-
-        console.log(`✅ Найдено медиа: ${unique.length}`);
-
-        if (unique.length === 0) {
+        if (media.length === 0) {
             return res.status(404).json({ 
                 error: 'Медиа не найдены. Пост может быть закрытым.' 
             });
         }
 
-        return res.status(200).json({ media: unique });
+        return res.status(200).json({ media });
 
     } catch (error) {
         console.error('❌ Ошибка:', error);
-        return res.status(500).json({ 
-            error: error.message || 'Ошибка загрузки' 
+        
+        // === FALLBACK: ВОЗВРАЩАЕМ ССЫЛКУ ДЛЯ ОТКРЫТИЯ В INSTAGRAM ===
+        return res.status(200).json({ 
+            media: [{ 
+                url: `https://www.instagram.com/p/${postId || ''}/`, 
+                type: 'link' 
+            }],
+            fallback: true,
+            message: 'Не удалось загрузить медиа. Откройте пост в Instagram.'
         });
     }
 }
