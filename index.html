@@ -12,7 +12,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 40px auto;
             background: white;
             padding: 40px;
@@ -55,6 +55,43 @@
             font-weight: bold;
             min-height: 50px;
         }
+        .media-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .media-item {
+            background: #f8f8f8;
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 10px;
+        }
+        .media-item img,
+        .media-item video {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .download-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .download-btn:hover {
+            background: #218838;
+        }
+        .hidden {
+            display: none;
+        }
         .progress {
             width: 100%;
             height: 4px;
@@ -74,29 +111,37 @@
             border-radius: 4px;
             transition: width 0.3s;
         }
+        @media (max-width: 600px) {
+            .media-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>AMAZONKA save</h1>
+        <p>Вставь ссылку Instagram — все фото и видео появятся ниже</p>
 
-        <input type="text" id="urlInput" placeholder="Вставь ссылку Instagram...">
-        <button id="downloadBtn" onclick="startDownload()">СКАЧАТЬ</button>
+        <input type="text" id="urlInput" placeholder="https://www.instagram.com/p/...">
+        <button id="downloadBtn" onclick="processLink()">ПОКАЗАТЬ МЕДИА</button>
 
         <div class="progress" id="progress">
             <div class="progress-fill" id="progressFill"></div>
         </div>
 
         <p id="status"></p>
+        <div id="mediaGrid" class="media-grid"></div>
     </div>
 
     <script>
         const status = document.getElementById('status');
         const input = document.getElementById('urlInput');
         const downloadBtn = document.getElementById('downloadBtn');
+        const mediaGrid = document.getElementById('mediaGrid');
         const progress = document.getElementById('progress');
         const progressFill = document.getElementById('progressFill');
-        let isDownloading = false;
+        let isProcessing = false;
 
         // АВТО-ПЕРЕХВАТ ИЗ БУФЕРА
         setInterval(async () => {
@@ -104,29 +149,29 @@
                 const text = await navigator.clipboard.readText();
                 if (text.includes('instagram.com') && text !== input.value) {
                     input.value = text;
-                    startDownload(text);
+                    processLink(text);
                 }
             } catch (e) {}
         }, 1500);
 
-        async function startDownload(givenUrl = null) {
+        async function processLink(givenUrl = null) {
             const url = givenUrl || input.value.trim();
             if (!url || !url.includes('instagram.com')) {
                 status.innerHTML = '❌ Неправильная ссылка';
                 return;
             }
 
-            if (isDownloading) return;
-            isDownloading = true;
+            if (isProcessing) return;
+            isProcessing = true;
             downloadBtn.disabled = true;
             downloadBtn.textContent = '⏳ ЗАГРУЗКА...';
+            mediaGrid.innerHTML = '';
 
-            status.innerHTML = '🔄 Получаем файл через прокси...';
+            status.innerHTML = '🔄 Получаем медиа...';
             progress.classList.add('active');
             progressFill.style.width = '0%';
 
             try {
-                // Имитация прогресса
                 let prog = 0;
                 const interval = setInterval(() => {
                     prog += Math.random() * 10;
@@ -134,7 +179,7 @@
                     progressFill.style.width = prog + '%';
                 }, 200);
 
-                const res = await fetch('/api/download', {
+                const res = await fetch('/api/media', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url })
@@ -147,44 +192,66 @@
                     throw new Error(errorData.error || 'Ошибка сервера');
                 }
 
-                // Получаем файл
-                const blob = await res.blob();
+                const data = await res.json();
                 progressFill.style.width = '100%';
 
-                // Определяем расширение
-                const contentType = res.headers.get('content-type') || '';
-                let ext = '.mp4';
-                if (contentType.includes('image/jpeg')) ext = '.jpg';
-                else if (contentType.includes('image/png')) ext = '.png';
-                else if (contentType.includes('image/gif')) ext = '.gif';
-                else if (contentType.includes('image/webp')) ext = '.webp';
+                if (!data.media || data.media.length === 0) {
+                    status.innerHTML = '❌ Медиа не найдены';
+                    return;
+                }
 
-                const filename = `instagram_${Date.now()}${ext}`;
+                // ОТОБРАЖАЕМ ВСЕ МЕДИА
+                data.media.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'media-item';
 
-                // СКАЧИВАЕМ ФАЙЛ
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+                    if (item.type === 'video') {
+                        div.innerHTML = `
+                            <video controls>
+                                <source src="${item.url}" type="video/mp4">
+                            </video>
+                            <button class="download-btn" onclick="downloadMedia('${item.url}', 'video_${index}.mp4')">
+                                ⬇ Скачать видео
+                            </button>
+                        `;
+                    } else {
+                        div.innerHTML = `
+                            <img src="${item.url}" alt="Фото ${index + 1}">
+                            <button class="download-btn" onclick="downloadMedia('${item.url}', 'photo_${index}.jpg')">
+                                ⬇ Скачать фото
+                            </button>
+                        `;
+                    }
 
-                status.innerHTML = '✅ Файл скачан!';
+                    mediaGrid.appendChild(div);
+                });
+
+                status.innerHTML = `✅ Найдено ${data.media.length} файлов! Нажмите "Скачать" под каждым.`;
+
                 setTimeout(() => {
                     progress.classList.remove('active');
                     progressFill.style.width = '0%';
-                }, 2000);
+                }, 1000);
 
             } catch (e) {
                 status.innerHTML = '❌ Ошибка: ' + e.message;
                 progress.classList.remove('active');
                 progressFill.style.width = '0%';
             } finally {
-                isDownloading = false;
+                isProcessing = false;
                 downloadBtn.disabled = false;
-                downloadBtn.textContent = 'СКАЧАТЬ';
+                downloadBtn.textContent = 'ПОКАЗАТЬ МЕДИА';
             }
+        }
+
+        // ФУНКЦИЯ СКАЧИВАНИЯ ОТДЕЛЬНОГО ФАЙЛА
+        function downloadMedia(url, filename) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
