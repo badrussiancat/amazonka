@@ -5,379 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AMAZONKA save</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-        }
-        body {
-            background: #f5f5f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 560px;
-            width: 100%;
-            background: #ffffff;
-            padding: 40px 32px;
-            border-radius: 24px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-            text-align: center;
-        }
-        .logo {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: 4px;
-            color: #1a1a1a;
-            margin-bottom: 6px;
-        }
-        .logo span {
-            color: #e1306c;
-        }
-        .sub {
-            font-size: 14px;
-            color: #8e8e93;
-            margin-bottom: 28px;
-        }
-        .input-wrap {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .input-wrap input {
-            flex: 1;
-            padding: 14px 18px;
-            border: 2px solid #e5e5ea;
-            border-radius: 14px;
-            font-size: 15px;
-            outline: none;
-            transition: 0.2s;
-            background: #f9f9fb;
-        }
-        .input-wrap input:focus {
-            border-color: #e1306c;
-            background: #fff;
-        }
-        .input-wrap button {
-            padding: 14px 28px;
-            background: #e1306c;
-            color: #fff;
-            border: none;
-            border-radius: 14px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-        .input-wrap button:hover {
-            background: #c02a5f;
-            transform: scale(0.97);
-        }
-        .input-wrap button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        #status {
-            font-size: 14px;
-            min-height: 24px;
-            color: #8e8e93;
-            margin-bottom: 20px;
-        }
-        #status.success {
-            color: #34c759;
-        }
-        #status.error {
-            color: #ff3b30;
-        }
-        #mediaGrid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 16px;
-        }
-        #mediaGrid .item {
-            background: #f9f9fb;
-            border-radius: 14px;
-            overflow: hidden;
-            padding: 8px;
-            border: 1px solid #e5e5ea;
-            transition: 0.2s;
-        }
-        #mediaGrid .item:hover {
-            border-color: #e1306c;
-        }
-        #mediaGrid .item img,
-        #mediaGrid .item video {
-            width: 100%;
-            max-height: 200px;
-            object-fit: cover;
-            border-radius: 10px;
-            display: block;
-        }
-        #mediaGrid .item .btn-download {
-            display: block;
-            margin-top: 8px;
-            padding: 8px 0;
-            background: #34c759;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        #mediaGrid .item .btn-download:hover {
-            background: #28a745;
-        }
-        .btn-all {
-            width: 100%;
-            padding: 14px;
-            margin-top: 16px;
-            background: #1a1a1a;
-            color: #fff;
-            border: none;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-all:hover {
-            background: #333;
-        }
-        .btn-all:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .progress {
-            width: 100%;
-            height: 3px;
-            background: #e5e5ea;
-            border-radius: 4px;
-            margin: 16px 0 8px;
-            overflow: hidden;
-        }
-        .progress .fill {
-            height: 100%;
-            width: 0%;
-            background: #e1306c;
-            border-radius: 4px;
-            transition: width 0.3s;
-        }
-        @media (max-width: 480px) {
-            .container {
-                padding: 28px 18px;
-            }
-            #mediaGrid {
-                grid-template-columns: 1fr;
-            }
-            .input-wrap {
-                flex-direction: column;
-            }
-            .input-wrap button {
-                width: 100%;
-            }
-        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}
+        body{background:#f5f5f7;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+        .container{max-width:560px;width:100%;background:#fff;padding:40px 32px;border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,0.08);text-align:center}
+        .logo{font-size:32px;font-weight:700;letter-spacing:4px;color:#1a1a1a;margin-bottom:6px}
+        .logo span{color:#e1306c}
+        .sub{font-size:14px;color:#8e8e93;margin-bottom:28px}
+        .input-wrap{display:flex;gap:10px;margin-bottom:16px}
+        .input-wrap input{flex:1;padding:14px 18px;border:2px solid #e5e5ea;border-radius:14px;font-size:15px;outline:none;transition:0.2s;background:#f9f9fb}
+        .input-wrap input:focus{border-color:#e1306c;background:#fff}
+        .input-wrap button{padding:14px 28px;background:#e1306c;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;white-space:nowrap}
+        .input-wrap button:hover{background:#c02a5f;transform:scale(0.97)}
+        .input-wrap button:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+        #status{font-size:14px;min-height:24px;color:#8e8e93;margin-bottom:20px}
+        #status.success{color:#34c759}
+        #status.error{color:#ff3b30}
+        #mediaGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+        #mediaGrid .item{background:#f9f9fb;border-radius:14px;overflow:hidden;padding:8px;border:1px solid #e5e5ea;transition:0.2s}
+        #mediaGrid .item:hover{border-color:#e1306c}
+        #mediaGrid .item img,#mediaGrid .item video{width:100%;max-height:200px;object-fit:cover;border-radius:10px;display:block}
+        #mediaGrid .item .btn-download{display:block;margin-top:8px;padding:8px 0;background:#34c759;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+        #mediaGrid .item .btn-download:hover{background:#28a745}
+        .btn-all{width:100%;padding:14px;margin-top:16px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer}
+        .btn-all:hover{background:#333}
+        .btn-all:disabled{opacity:0.4;cursor:not-allowed}
+        .hidden{display:none!important}
+        .progress{width:100%;height:3px;background:#e5e5ea;border-radius:4px;margin:16px 0 8px;overflow:hidden}
+        .progress .fill{height:100%;width:0%;background:#e1306c;border-radius:4px;transition:width .3s}
+        @media(max-width:480px){.container{padding:28px 18px}#mediaGrid{grid-template-columns:1fr}.input-wrap{flex-direction:column}.input-wrap button{width:100%}}
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="logo">AMAZONKA <span>save</span></div>
     <div class="sub">Вставь ссылку — всё скачается автоматически</div>
-
     <div class="input-wrap">
         <input type="text" id="urlInput" placeholder="https://www.instagram.com/p/...">
         <button id="goBtn">→</button>
     </div>
-
     <div id="status">Ожидание ссылки...</div>
-
-    <div class="progress" id="progress">
-        <div class="fill" id="progressFill"></div>
-    </div>
-
+    <div class="progress" id="progress"><div class="fill" id="progressFill"></div></div>
     <div id="mediaGrid"></div>
-
     <button class="btn-all" id="downloadAllBtn" disabled>⬇ Скачать всё</button>
 </div>
-
 <script>
-    const urlInput = document.getElementById('urlInput');
-    const goBtn = document.getElementById('goBtn');
-    const status = document.getElementById('status');
-    const mediaGrid = document.getElementById('mediaGrid');
-    const downloadAllBtn = document.getElementById('downloadAllBtn');
-    const progress = document.getElementById('progress');
-    const progressFill = document.getElementById('progressFill');
-
-    let mediaItems = [];
-    let isProcessing = false;
-
-    // === АВТО-ПЕРЕХВАТ ИЗ БУФЕРА ===
-    setInterval(async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            if (text && text.includes('instagram.com') && text !== urlInput.value) {
-                urlInput.value = text;
-                processLink(text);
-            }
-        } catch (_) {}
-    }, 1500);
-
-    // === ОБРАБОТКА ССЫЛКИ ===
-    async function processLink(url) {
-        if (!url || !url.includes('instagram.com')) {
-            status.textContent = '❌ Неверная ссылка';
-            status.className = 'error';
-            return;
-        }
-
-        if (isProcessing) return;
-        isProcessing = true;
-        goBtn.disabled = true;
-        mediaGrid.innerHTML = '';
-        mediaItems = [];
-        downloadAllBtn.disabled = true;
-
-        status.textContent = '🔄 Загрузка...';
-        status.className = '';
-        progress.classList.remove('hidden');
-        progressFill.style.width = '0%';
-
-        try {
-            let progressValue = 0;
-            const interval = setInterval(() => {
-                progressValue += Math.random() * 8;
-                if (progressValue > 90) progressValue = 90;
-                progressFill.style.width = progressValue + '%';
-            }, 200);
-
-            const res = await fetch('/api/download', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
-            });
-
-            clearInterval(interval);
-
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || 'Ошибка сервера');
-            }
-
-            const data = await res.json();
-
-            if (!data.media || data.media.length === 0) {
-                status.textContent = '❌ Медиа не найдены';
-                status.className = 'error';
-                progress.classList.add('hidden');
-                return;
-            }
-
-            mediaItems = data.media;
-            progressFill.style.width = '100%';
-
-            // ОТОБРАЖАЕМ МЕДИА
-            mediaItems.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'item';
-
-                if (item.type === 'video') {
-                    div.innerHTML = `
-                        <video controls muted playsinline>
-                            <source src="${item.url}" type="video/mp4">
-                        </video>
-                        <button class="btn-download" data-url="${item.url}" data-index="${index}">⬇ Скачать видео</button>
-                    `;
-                } else {
-                    div.innerHTML = `
-                        <img src="${item.url}" alt="Фото" loading="lazy">
-                        <button class="btn-download" data-url="${item.url}" data-index="${index}">⬇ Скачать фото</button>
-                    `;
-                }
-
-                mediaGrid.appendChild(div);
-            });
-
-            // КНОПКИ ДЛЯ КАЖДОГО ФАЙЛА
-            document.querySelectorAll('.btn-download').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const url = this.dataset.url;
-                    const ext = url.includes('.mp4') ? '.mp4' : '.jpg';
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `instagram_${Date.now()}_${Math.random().toString(36).slice(2, 6)}${ext}`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                });
-            });
-
-            status.textContent = `✅ Найдено ${mediaItems.length} файлов`;
-            status.className = 'success';
-            downloadAllBtn.disabled = false;
-
-            setTimeout(() => {
-                progress.classList.add('hidden');
-                progressFill.style.width = '0%';
-            }, 1000);
-
-        } catch (e) {
-            status.textContent = '❌ ' + e.message;
-            status.className = 'error';
-            progress.classList.add('hidden');
-        } finally {
-            isProcessing = false;
-            goBtn.disabled = false;
-        }
-    }
-
-    // === СКАЧАТЬ ВСЁ ===
-    function downloadAll() {
-        if (mediaItems.length === 0) return;
-        downloadAllBtn.disabled = true;
-        downloadAllBtn.textContent = '⏳ Скачивание...';
-
-        mediaItems.forEach((item, i) => {
-            setTimeout(() => {
-                const ext = item.type === 'video' ? '.mp4' : '.jpg';
-                const link = document.createElement('a');
-                link.href = item.url;
-                link.download = `instagram_${Date.now()}_${i + 1}${ext}`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }, i * 400);
-        });
-
-        setTimeout(() => {
-            downloadAllBtn.disabled = false;
-            downloadAllBtn.textContent = '⬇ Скачать всё';
-            status.textContent = `✅ Скачано ${mediaItems.length} файлов`;
-        }, mediaItems.length * 400 + 1000);
-    }
-
-    // === СОБЫТИЯ ===
-    goBtn.addEventListener('click', () => processLink(urlInput.value));
-    urlInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') processLink(urlInput.value);
-    });
-    downloadAllBtn.addEventListener('click', downloadAll);
-
-    // === ПРИ ЗАГРУЗКЕ ===
-    status.textContent = '📋 Скопируйте ссылку Instagram';
+    const urlInput=document.getElementById('urlInput'),goBtn=document.getElementById('goBtn'),status=document.getElementById('status'),mediaGrid=document.getElementById('mediaGrid'),downloadAllBtn=document.getElementById('downloadAllBtn'),progress=document.getElementById('progress'),progressFill=document.getElementById('progressFill');
+    let mediaItems=[],isProcessing=!1;
+    setInterval(async()=>{try{const text=await navigator.clipboard.readText();text&&text.includes('instagram.com')&&text!==urlInput.value&&(urlInput.value=text,processLink(text))}catch(_){}},1500);
+    async function processLink(url){if(!url||!url.includes('instagram.com')){status.textContent='❌ Неверная ссылка';status.className='error';return}if(isProcessing)return;isProcessing=!0;goBtn.disabled=!0;mediaGrid.innerHTML='';mediaItems=[];downloadAllBtn.disabled=!0;status.textContent='🔄 Загрузка...';status.className='';progress.classList.remove('hidden');progressFill.style.width='0%';try{let progressValue=0;const interval=setInterval(()=>{progressValue+=Math.random()*8;progressValue>90&&(progressValue=90);progressFill.style.width=progressValue+'%'},200);const res=await fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});clearInterval(interval);if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error||'Ошибка сервера')}const data=await res.json();if(!data.media||data.media.length===0){status.textContent='❌ Медиа не найдены';status.className='error';progress.classList.add('hidden');return}mediaItems=data.media;progressFill.style.width='100%';mediaItems.forEach((item,index)=>{const div=document.createElement('div');div.className='item';if(item.type==='video'){div.innerHTML=`<video controls muted playsinline><source src="${item.url}" type="video/mp4"></video><button class="btn-download" data-url="${item.url}" data-index="${index}">⬇ Скачать видео</button>`}else{div.innerHTML=`<img src="${item.url}" alt="Фото" loading="lazy"><button class="btn-download" data-url="${item.url}" data-index="${index}">⬇ Скачать фото</button>`}mediaGrid.appendChild(div)});document.querySelectorAll('.btn-download').forEach(btn=>{btn.addEventListener('click',function(){const url=this.dataset.url,ext=url.includes('.mp4')?'.mp4':'.jpg',link=document.createElement('a');link.href=url;link.download=`instagram_${Date.now()}_${Math.random().toString(36).slice(2,6)}${ext}`;document.body.appendChild(link);link.click();document.body.removeChild(link)})});status.textContent=`✅ Найдено ${mediaItems.length} файлов`;status.className='success';downloadAllBtn.disabled=!1;setTimeout(()=>{progress.classList.add('hidden');progressFill.style.width='0%'},1e3)}catch(e){status.textContent='❌ '+e.message;status.className='error';progress.classList.add('hidden')}finally{isProcessing=!1;goBtn.disabled=!1}}
+    function downloadAll(){if(mediaItems.length===0)return;downloadAllBtn.disabled=!0;downloadAllBtn.textContent='⏳ Скачивание...';mediaItems.forEach((item,i)=>{setTimeout(()=>{const ext=item.type==='video'?'.mp4':'.jpg',link=document.createElement('a');link.href=item.url;link.download=`instagram_${Date.now()}_${i+1}${ext}`;document.body.appendChild(link);link.click();document.body.removeChild(link)},i*400)});setTimeout(()=>{downloadAllBtn.disabled=!1;downloadAllBtn.textContent='⬇ Скачать всё';status.textContent=`✅ Скачано ${mediaItems.length} файлов`},mediaItems.length*400+1e3)}
+    goBtn.addEventListener('click',()=>processLink(urlInput.value));
+    urlInput.addEventListener('keydown',e=>{if(e.key==='Enter')processLink(urlInput.value)});
+    downloadAllBtn.addEventListener('click',downloadAll);
+    status.textContent='📋 Скопируйте ссылку Instagram';
 </script>
 </body>
 </html>
