@@ -1,69 +1,179 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AMAZONKA save</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
-    .container { max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-    h1 { color: #e1306c; letter-spacing: 3px; }
-    input { width: 100%; padding: 18px; font-size: 18px; margin: 20px 0; border: 2px solid #ddd; border-radius: 12px; box-sizing: border-box; }
-    button { width: 100%; padding: 18px; font-size: 20px; background: #e1306c; color: white; border: none; border-radius: 12px; cursor: pointer; }
-    button:hover { background: #c02a5f; }
-    #status { margin-top: 20px; font-weight: bold; min-height: 50px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAZONKA save</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #e1306c;
+            letter-spacing: 3px;
+        }
+        input {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 18px;
+            font-size: 20px;
+            background: #e1306c;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #c02a5f;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 50px;
+        }
+        .progress {
+            width: 100%;
+            height: 4px;
+            background: #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress.active {
+            display: block;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #e1306c;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>AMAZONKA save</h1>
-    
-    <input type="text" id="urlInput" placeholder="Вставь ссылку сюда...">
-    <button onclick="startDownload()">СКАЧАТЬ</button>
-    
-    <p id="status"></p>
-  </div>
+    <div class="container">
+        <h1>AMAZONKA save</h1>
 
-  <script>
-    const status = document.getElementById('status');
-    const input = document.getElementById('urlInput');
+        <input type="text" id="urlInput" placeholder="Вставь ссылку сюда...">
+        <button id="downloadBtn" onclick="startDownload()">СКАЧАТЬ</button>
 
-    setInterval(async () => {
-      try {
-        const text = await navigator.clipboard.readText();
-        if (text.includes('instagram.com') && text !== input.value) {
-          input.value = text;
-          startDownload(text);
+        <div class="progress" id="progress">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <p id="status"></p>
+    </div>
+
+    <script>
+        const status = document.getElementById('status');
+        const input = document.getElementById('urlInput');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const progress = document.getElementById('progress');
+        const progressFill = document.getElementById('progressFill');
+        let isDownloading = false;
+
+        // Авто-перехват из буфера
+        setInterval(async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text.includes('instagram.com') && text !== input.value) {
+                    input.value = text;
+                    startDownload(text);
+                }
+            } catch (e) {}
+        }, 1500);
+
+        async function startDownload(givenUrl = null) {
+            const url = givenUrl || input.value.trim();
+            if (!url || !url.includes('instagram.com')) {
+                status.innerHTML = '❌ Неправильная ссылка';
+                return;
+            }
+
+            if (isDownloading) return;
+            isDownloading = true;
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '⏳ ЗАГРУЗКА...';
+
+            status.innerHTML = '🔄 Получаем файл...';
+            progress.classList.add('active');
+            progressFill.style.width = '0%';
+
+            try {
+                // Имитация прогресса
+                let prog = 0;
+                const interval = setInterval(() => {
+                    prog += Math.random() * 10;
+                    if (prog > 90) prog = 90;
+                    progressFill.style.width = prog + '%';
+                }, 200);
+
+                const res = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                clearInterval(interval);
+
+                if (!res.ok) {
+                    throw new Error('Ошибка сервера');
+                }
+
+                const blob = await res.blob();
+                progressFill.style.width = '100%';
+
+                const filename = `instagram_${Date.now()}.mp4`;
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+
+                status.innerHTML = '✅ Скачивание началось!';
+                setTimeout(() => {
+                    progress.classList.remove('active');
+                    progressFill.style.width = '0%';
+                }, 1000);
+
+            } catch (e) {
+                status.innerHTML = '❌ Ошибка: ' + e.message;
+                progress.classList.remove('active');
+                progressFill.style.width = '0%';
+            } finally {
+                isDownloading = false;
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = 'СКАЧАТЬ';
+            }
         }
-      } catch(e) {}
-    }, 1500);
-
-    async function startDownload(givenUrl = null) {
-      const url = givenUrl || input.value.trim();
-      if (!url || !url.includes('instagram.com')) {
-        status.innerHTML = '❌ Неправильная ссылка';
-        return;
-      }
-
-      status.innerHTML = '🔄 Получаем файл...';
-
-      try {
-        const res = await fetch('/api/download', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url })
-        });
-        const data = await res.json();
-        if (data.downloadUrl) {
-          window.location.href = data.downloadUrl;
-          status.innerHTML = '✅ Скачивание началось!';
-        } else {
-          status.innerHTML = '❌ Не удалось';
-        }
-      } catch (e) {
-        status.innerHTML = '❌ Ошибка сервера';
-      }
-    }
-  </script>
+    </script>
 </body>
 </html>
