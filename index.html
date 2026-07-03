@@ -17,7 +17,7 @@
 <body>
   <div class="container">
     <h1>AMAZONKA save</h1>
-    
+  
     <input type="text" id="urlInput" placeholder="Вставь ссылку сюда...">
     <button onclick="startDownload()">СКАЧАТЬ</button>
     
@@ -44,8 +44,28 @@
         status.innerHTML = '<span style="color:red">❌ Вставьте корректную ссылку Instagram</span>';
         return;
       }
+
       status.innerHTML = '🔄 Обрабатываем...';
-      status.innerHTML = `✅ Ссылка принята!<br><small>${url.substring(0, 70)}...</small>`;
+
+      try {
+        // Публичный downloader API
+        const apiUrl = `https://api.cobalt.tools/api/json`;
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        const data = await res.json();
+
+        if (data.url) {
+          window.location.href = data.url;
+          status.innerHTML = '✅ Скачивание началось!';
+        } else {
+          status.innerHTML = '❌ Не удалось получить файл';
+        }
+      } catch (e) {
+        status.innerHTML = '❌ Ошибка. Попробуйте позже.';
+      }
     }
   </script>
 </body>
