@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMAZONKA save</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+    h1 { color: #e1306c; letter-spacing: 3px; }
+    input { width: 100%; padding: 18px; font-size: 18px; margin: 20px 0; border: 2px solid #ddd; border-radius: 12px; box-sizing: border-box; }
+    button { width: 100%; padding: 18px; font-size: 20px; background: #e1306c; color: white; border: none; border-radius: 12px; cursor: pointer; }
+    button:hover { background: #c02a5f; }
+    #status { margin-top: 20px; font-weight: bold; min-height: 28px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AMAZONKA save</h1>
+    
+    <input type="text" id="urlInput" placeholder="Вставь ссылку сюда...">
+    <button onclick="startDownload()">СКАЧАТЬ</button>
+    
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const status = document.getElementById('status');
+    const input = document.getElementById('urlInput');
+
+    setInterval(async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text.includes('instagram.com') && text !== input.value) {
+          input.value = text;
+          startDownload(text);
+        }
+      } catch(e) {}
+    }, 1800);
+
+    async function startDownload(givenUrl = null) {
+      const url = givenUrl || input.value.trim();
+      if (!url || !url.includes('instagram.com')) {
+        status.innerHTML = '<span style="color:red">❌ Вставьте корректную ссылку Instagram</span>';
+        return;
+      }
+      status.innerHTML = '🔄 Обрабатываем...';
+      status.innerHTML = `✅ Ссылка принята!<br><small>${url.substring(0, 70)}...</small>`;
+    }
+  </script>
+</body>
+</html>
