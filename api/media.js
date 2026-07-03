@@ -23,7 +23,8 @@ export default async function handler(req, res) {
     });
 
     try {
-        // 1. ПОЛУЧАЕМ СТРАНИЦУ ЧЕРЕЗ ПРОКСИ
+        console.log('🔍 Загружаем:', url);
+        
         const pageRes = await fetch(url, {
             agent,
             headers: {
@@ -40,23 +41,25 @@ export default async function handler(req, res) {
         const html = await pageRes.text();
         const media = [];
 
-        // 2. ИЩЕМ ВСЕ ВИДЕО (.mp4)
-        const videoMatches = html.match(/https?:\/\/[^\s"']+\.mp4[^\s"']*/gi) || [];
+        // === 1. ИЩЕМ ВИДЕО ===
+        const videoRegex = /https?:\/\/[^\s"']+\.mp4[^\s"']*/gi;
+        const videoMatches = html.match(videoRegex) || [];
         for (const v of videoMatches) {
             if (!media.some(m => m.url === v)) {
                 media.push({ url: v, type: 'video' });
             }
         }
 
-        // 3. ИЩЕМ ВСЕ ИЗОБРАЖЕНИЯ
-        const imgMatches = html.match(/https?:\/\/[^\s"']+\.(jpg|jpeg|png|gif|webp)[^\s"']*/gi) || [];
+        // === 2. ИЩЕМ ИЗОБРАЖЕНИЯ ===
+        const imgRegex = /https?:\/\/[^\s"']+\.(jpg|jpeg|png|gif|webp)[^\s"']*/gi;
+        const imgMatches = html.match(imgRegex) || [];
         for (const img of imgMatches) {
             if (!media.some(m => m.url === img)) {
                 media.push({ url: img, type: 'image' });
             }
         }
 
-        // 4. ЕСЛИ НИЧЕГО НЕ НАШЛИ — ПАРСИМ JSON
+        // === 3. ПАРСИМ JSON (самый надёжный способ) ===
         if (media.length === 0) {
             const jsonMatch = html.match(/window\._sharedData\s*=\s*({.+?});/s);
             if (jsonMatch) {
@@ -73,7 +76,7 @@ export default async function handler(req, res) {
                             media.push({ url: post.display_url, type: 'image' });
                         }
                         
-                        // Карусель (несколько фото/видео)
+                        // Карусель
                         if (post.edge_sidecar_to_children?.edges) {
                             for (const edge of post.edge_sidecar_to_children.edges) {
                                 const node = edge.node;
@@ -86,27 +89,27 @@ export default async function handler(req, res) {
                             }
                         }
                     }
-                } catch (_) {}
+                } catch (e) {
+                    console.log('Ошибка парсинга JSON:', e);
+                }
             }
         }
 
-        // 5. ЕСЛИ ВСЁ РАВНО НЕТ — ИЩЕМ В ДРУГОМ JSON
+        // === 4. ЕЩЁ ОДИН ВАРИАНТ JSON ===
         if (media.length === 0) {
             const jsonMatch = html.match(/<script type="application\/ld\+json">({.+?})<\/script>/s);
             if (jsonMatch) {
                 try {
                     const data = JSON.parse(jsonMatch[1]);
-                    if (data.image && data.image.url) {
-                        media.push({ url: data.image.url, type: 'image' });
+                    if (data.image) {
+                        const imgUrl = typeof data.image === 'string' ? data.image : data.image.url;
+                        if (imgUrl) media.push({ url: imgUrl, type: 'image' });
                     }
-                    if (data.video && data.video.url) {
-                        media.push({ url: data.video.url, type: 'video' });
-                    }
-                } catch (_) {}
+                } catch (e) {}
             }
         }
 
-        // 6. УБИРАЕМ ДУБЛИКАТЫ
+        // === 5. УБИРАЕМ ДУБЛИКАТЫ ===
         const unique = [];
         const seen = new Set();
         for (const item of media) {
@@ -116,16 +119,18 @@ export default async function handler(req, res) {
             }
         }
 
+        console.log(`✅ Найдено медиа: ${unique.length}`);
+
         if (unique.length === 0) {
             return res.status(404).json({ 
-                error: 'Медиа не найдены. Убедитесь, что пост публичный.' 
+                error: 'Медиа не найдены. Пост может быть закрытым.' 
             });
         }
 
         return res.status(200).json({ media: unique });
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Ошибка:', error);
         return res.status(500).json({ 
             error: error.message || 'Ошибка загрузки' 
         });
