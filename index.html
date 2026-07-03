@@ -143,25 +143,25 @@
                 clearInterval(interval);
 
                 if (!res.ok) {
-                    const errorData = await res.json();
+                    const errorData = await res.json().catch(() => ({}));
                     throw new Error(errorData.error || 'Ошибка сервера');
                 }
 
-                // ПОЛУЧАЕМ ФАЙЛ
+                // Получаем файл
                 const blob = await res.blob();
                 progressFill.style.width = '100%';
 
-                // ОПРЕДЕЛЯЕМ РАСШИРЕНИЕ
+                // Определяем расширение
                 const contentType = res.headers.get('content-type') || '';
                 let ext = '.mp4';
-                if (contentType.includes('image')) ext = '.jpg';
-                if (contentType.includes('png')) ext = '.png';
-                if (contentType.includes('gif')) ext = '.gif';
-                if (contentType.includes('webp')) ext = '.webp';
+                if (contentType.includes('image/jpeg')) ext = '.jpg';
+                else if (contentType.includes('image/png')) ext = '.png';
+                else if (contentType.includes('image/gif')) ext = '.gif';
+                else if (contentType.includes('image/webp')) ext = '.webp';
 
                 const filename = `instagram_${Date.now()}${ext}`;
 
-                // === СОЗДАЁМ СКАЧИВАНИЕ ===
+                // СКАЧИВАЕМ ФАЙЛ
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = filename;
