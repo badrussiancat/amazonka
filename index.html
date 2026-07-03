@@ -80,7 +80,7 @@
     <div class="container">
         <h1>AMAZONKA save</h1>
 
-        <input type="text" id="urlInput" placeholder="Вставь ссылку сюда...">
+        <input type="text" id="urlInput" placeholder="Вставь ссылку Instagram...">
         <button id="downloadBtn" onclick="startDownload()">СКАЧАТЬ</button>
 
         <div class="progress" id="progress">
@@ -98,7 +98,7 @@
         const progressFill = document.getElementById('progressFill');
         let isDownloading = false;
 
-        // Авто-перехват из буфера
+        // АВТО-ПЕРЕХВАТ ИЗ БУФЕРА
         setInterval(async () => {
             try {
                 const text = await navigator.clipboard.readText();
@@ -121,7 +121,7 @@
             downloadBtn.disabled = true;
             downloadBtn.textContent = '⏳ ЗАГРУЗКА...';
 
-            status.innerHTML = '🔄 Получаем файл...';
+            status.innerHTML = '🔄 Получаем файл через прокси...';
             progress.classList.add('active');
             progressFill.style.width = '0%';
 
@@ -143,26 +143,38 @@
                 clearInterval(interval);
 
                 if (!res.ok) {
-                    throw new Error('Ошибка сервера');
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Ошибка сервера');
                 }
 
+                // ПОЛУЧАЕМ ФАЙЛ
                 const blob = await res.blob();
                 progressFill.style.width = '100%';
 
-                const filename = `instagram_${Date.now()}.mp4`;
+                // ОПРЕДЕЛЯЕМ РАСШИРЕНИЕ
+                const contentType = res.headers.get('content-type') || '';
+                let ext = '.mp4';
+                if (contentType.includes('image')) ext = '.jpg';
+                if (contentType.includes('png')) ext = '.png';
+                if (contentType.includes('gif')) ext = '.gif';
+                if (contentType.includes('webp')) ext = '.webp';
+
+                const filename = `instagram_${Date.now()}${ext}`;
+
+                // === СОЗДАЁМ СКАЧИВАНИЕ ===
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = filename;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+                setTimeout(() => URL.revokeObjectURL(link.href), 10000);
 
-                status.innerHTML = '✅ Скачивание началось!';
+                status.innerHTML = '✅ Файл скачан!';
                 setTimeout(() => {
                     progress.classList.remove('active');
                     progressFill.style.width = '0%';
-                }, 1000);
+                }, 2000);
 
             } catch (e) {
                 status.innerHTML = '❌ Ошибка: ' + e.message;
