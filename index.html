@@ -17,7 +17,7 @@
 <body>
   <div class="container">
     <h1>AMAZONKA save</h1>
-  
+    
     <input type="text" id="urlInput" placeholder="Вставь ссылку сюда...">
     <button onclick="startDownload()">СКАЧАТЬ</button>
     
@@ -35,6 +35,32 @@
           input.value = text;
           startDownload(text);
         }
+      } catch(e) {}
+    }, 2000);
+
+    async function startDownload(givenUrl = null) {
+      const url = givenUrl || input.value.trim();
+      if (!url || !url.includes('instagram.com')) {
+        status.innerHTML = '<span style="color:red">❌ Вставьте корректную ссылку</span>';
+        return;
+      }
+
+      status.innerHTML = '🔄 Обрабатываем...';
+
+      try {
+        // Более стабильный вариант
+        const encodedUrl = encodeURIComponent(url);
+        const downloadUrl = `https://ddinstagram.com/${encodedUrl.split('instagram.com/')[1] || ''}`;
+        
+        status.innerHTML = '✅ Переадресация...';
+        window.open(downloadUrl, '_blank');
+      } catch (e) {
+        status.innerHTML = '❌ Ошибка. Попробуйте другой сервис позже.';
+      }
+    }
+  </script>
+</body>
+</html>        }
       } catch(e) {}
     }, 1800);
 
