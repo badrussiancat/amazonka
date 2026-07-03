@@ -1,0 +1,7 @@
+{
+    "name": "amazonka",
+    "version": "1.0.0",
+    "dependencies": {
+        "socks-proxy-agent": "^8.0.0"
+    }
+}
